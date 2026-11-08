@@ -1,0 +1,98 @@
+{% extends "app_base.html" %}
+
+{% block title %}Operations Overview · Campus Parcel Station{% endblock %}
+{% block page_name %}Operations overview{% endblock %}
+
+{% block app_content %}
+  <section class="dashboard-intro">
+    <div>
+      <p class="eyebrow">TODAY AT A GLANCE</p>
+      <h1>Good to see you, {{ g.user["display_name"] }}.</h1>
+      <p>Monitor current parcel activity and the station's operating state.</p>
+    </div>
+    <span class="live-chip"><span></span> Local workspace online</span>
+  </section>
+
+  <section class="metric-grid" aria-label="Station metrics">
+    <article class="metric-card">
+      <span class="metric-label">Active parcels</span>
+      <strong>{{ active_count }}</strong>
+      <small>Currently stored</small>
+    </article>
+    <article class="metric-card warning">
+      <span class="metric-label">Overdue</span>
+      <strong>{{ overdue_count }}</strong>
+      <small>Past the free period</small>
+    </article>
+    <article class="metric-card">
+      <span class="metric-label">Free shelf slots</span>
+      <strong>{{ available_slots }}</strong>
+      <small>of {{ total_shelf_slots }} available</small>
+    </article>
+    <article class="metric-card accent">
+      <span class="metric-label">Fees collected</span>
+      <strong>${{ "%.2f"|format(fees_collected) }}</strong>
+      <small>Collected parcels</small>
+    </article>
+  </section>
+
+  <section class="dashboard-grid">
+    <article class="panel activity-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">AUDIT TRAIL</p>
+          <h2>Recent activity</h2>
+        </div>
+      </div>
+
+      {% if recent_logs %}
+        <ul class="activity-list">
+          {% for log in recent_logs %}
+            <li>
+              <span class="activity-dot {{ log['action'] }}"></span>
+              <div>
+                <strong>{{ log["message"] }}</strong>
+                <small>{{ log["created_at"] }}</small>
+              </div>
+              {% if log["amount"] %}
+                <span class="activity-amount">${{ "%.2f"|format(log["amount"]) }}</span>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty-state">
+          <strong>No activity yet</strong>
+          <p>Check-in and pickup records will appear here.</p>
+        </div>
+      {% endif %}
+    </article>
+
+    <article class="panel next-panel">
+      <p class="eyebrow">WORKSPACE STATUS</p>
+      <h2>Staff access is active.</h2>
+      <p>
+        The protected portal now connects parcel check-in, collection,
+        shelf occupancy, and daily reporting in one workflow.
+      </p>
+      <dl class="system-list">
+        <div>
+          <dt>Authentication</dt>
+          <dd>Ready</dd>
+        </div>
+        <div>
+          <dt>Database</dt>
+          <dd>SQLite</dd>
+        </div>
+        <div>
+          <dt>Business engine</dt>
+          <dd>Ready</dd>
+        </div>
+        <div>
+          <dt>Reports</dt>
+          <dd>Ready</dd>
+        </div>
+      </dl>
+    </article>
+  </section>
+{% endblock %}

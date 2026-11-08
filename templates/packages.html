@@ -1,0 +1,123 @@
+{% extends "app_base.html" %}
+
+{% block title %}Parcel Register · Campus Parcel Station{% endblock %}
+{% block page_name %}Parcel register{% endblock %}
+
+{% block app_content %}
+  <section class="package-heading">
+    <div>
+      <p class="eyebrow">PARCEL OPERATIONS</p>
+      <h1>Register and locate parcels.</h1>
+      <p>Check in new parcels, review their status, and search the live register.</p>
+    </div>
+  </section>
+
+  <section class="checkin-panel">
+    <div class="checkin-copy">
+      <span class="panel-index">NEW PARCEL</span>
+      <h2>Check in a parcel</h2>
+      <p>The first available shelf position and pickup code are assigned automatically.</p>
+    </div>
+    <form class="checkin-form" method="post" action="{{ url_for('package_check_in') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="field compact">
+        <span>Courier</span>
+        <input name="courier" maxlength="40" required placeholder="e.g. Australia Post">
+      </label>
+      <label class="field compact">
+        <span>Recipient</span>
+        <input name="recipient" maxlength="80" required placeholder="Recipient name">
+      </label>
+      <label class="field compact">
+        <span>Contact</span>
+        <input name="recipient_contact" maxlength="120" placeholder="Optional">
+      </label>
+      <label class="field compact">
+        <span>Reference</span>
+        <input name="parcel_reference" maxlength="80" placeholder="Optional tracking no.">
+      </label>
+      <button class="button primary" type="submit">Check in parcel</button>
+    </form>
+  </section>
+
+  <section class="register-panel">
+    <div class="register-heading">
+      <div>
+        <p class="eyebrow">LIVE REGISTER</p>
+        <h2>{{ packages|length }} parcel{% if packages|length != 1 %}s{% endif %}</h2>
+      </div>
+      <form class="filter-form" method="get" action="{{ url_for('package_list') }}">
+        <label class="search-field">
+          <span class="sr-only">Search parcels</span>
+          <input
+            type="search"
+            name="q"
+            value="{{ query }}"
+            placeholder="Code, recipient, courier or reference"
+          >
+        </label>
+        <select name="status" aria-label="Parcel status">
+          <option value="all" {% if selected_status == "all" %}selected{% endif %}>All statuses</option>
+          <option value="stored" {% if selected_status == "stored" %}selected{% endif %}>Stored</option>
+          <option value="overdue" {% if selected_status == "overdue" %}selected{% endif %}>Overdue</option>
+          <option value="collected" {% if selected_status == "collected" %}selected{% endif %}>Collected</option>
+        </select>
+        <button class="button secondary" type="submit">Search</button>
+        {% if query or selected_status != "all" %}
+          <a class="clear-filter" href="{{ url_for('package_list') }}">Clear</a>
+        {% endif %}
+      </form>
+    </div>
+
+    {% if packages %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Parcel</th>
+              <th>Recipient</th>
+              <th>Shelf</th>
+              <th>Stored</th>
+              <th>Status</th>
+              <th>Fee</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for package in packages %}
+              <tr>
+                <td>
+                  <strong>{{ package["pickup_code"] }}</strong>
+                  <small>{{ package["courier"] }} · {{ package["parcel_reference"] or "No reference" }}</small>
+                </td>
+                <td>
+                  <strong>{{ package["recipient"] }}</strong>
+                  <small>{{ package["recipient_contact"] or "No contact" }}</small>
+                </td>
+                <td><span class="shelf-token">{{ package["shelf_slot"] }}</span></td>
+                <td>
+                  {{ package["stored_at"][:10] }}
+                  <small>{{ package["waiting_days"] }} day{% if package["waiting_days"] != 1 %}s{% endif %} waiting</small>
+                </td>
+                <td>
+                  {% if package["status"] == "collected" %}
+                    <span class="status-badge collected">Collected</span>
+                  {% elif package["is_overdue"] %}
+                    <span class="status-badge overdue">Overdue</span>
+                  {% else %}
+                    <span class="status-badge stored">Stored</span>
+                  {% endif %}
+                </td>
+                <td>${{ "%.2f"|format(package["fee_due"]) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state large">
+        <strong>No matching parcels</strong>
+        <p>Try a different search or clear the current status filter.</p>
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

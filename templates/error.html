@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}{{ error_code }} · Campus Parcel Station{% endblock %}
+
+{% block content %}
+  <section class="error-shell">
+    <div class="error-code">{{ error_code }}</div>
+    <p class="eyebrow">REQUEST NOT COMPLETED</p>
+    <h1>{{ error_title }}</h1>
+    <p>{{ error_message }}</p>
+    <div class="hero-actions">
+      <a class="button primary" href="{{ url_for('dashboard') }}">Return to workspace</a>
+      <a class="button secondary" href="{{ url_for('auth.login') }}">Go to sign in</a>
+    </div>
+  </section>
+{% endblock %}

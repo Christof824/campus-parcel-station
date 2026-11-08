@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#10233d">
+    <title>{% block title %}{{ app_name or "Campus Parcel Station" }}{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <header class="site-header">
+      <a class="brand" href="{{ url_for('dashboard') }}" aria-label="Campus Parcel Station home">
+        <span class="brand-mark">CPS</span>
+        <span>
+          <strong>Campus Parcel Station</strong>
+          <small>Operations workspace</small>
+        </span>
+      </a>
+      <span class="stage-badge">Operations suite</span>
+    </header>
+
+    <main id="main-content">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+      <span>Campus Parcel Station</span>
+      <span>Jiantao Zhuo · Web V2</span>
+    </footer>
+  </body>
+</html>

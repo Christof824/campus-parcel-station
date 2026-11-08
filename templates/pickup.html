@@ -1,0 +1,94 @@
+{% extends "app_base.html" %}
+
+{% block title %}Parcel Pickup · Campus Parcel Station{% endblock %}
+{% block page_name %}Parcel pickup{% endblock %}
+
+{% block app_content %}
+  <section class="pickup-intro">
+    <div>
+      <p class="eyebrow">STUDENT COLLECTION</p>
+      <h1>Look up a parcel before releasing it.</h1>
+      <p>The parcel remains on the shelf until the staff member confirms collection.</p>
+    </div>
+  </section>
+
+  <section class="pickup-grid">
+    <article class="pickup-card">
+      <span class="panel-index">STEP 1</span>
+      <h2>Enter pickup code</h2>
+      <form method="post" action="{{ url_for('pickup_lookup') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label class="field">
+          <span>Pickup code</span>
+          <input
+            class="code-input"
+            type="text"
+            name="pickup_code"
+            value="{{ lookup_code }}"
+            inputmode="numeric"
+            pattern="[0-9]{4}"
+            minlength="4"
+            maxlength="4"
+            placeholder="0000"
+            required
+            autofocus
+          >
+        </label>
+        <button class="button primary wide" type="submit">Find parcel</button>
+      </form>
+
+      {% if lookup_error %}
+        <div class="form-alert" role="alert">{{ lookup_error }}</div>
+      {% endif %}
+    </article>
+
+    <article class="pickup-card result-card{% if found_package %} found{% endif %}">
+      {% if found_package %}
+        <span class="panel-index">STEP 2</span>
+        <div class="found-heading">
+          <div>
+            <p class="eyebrow">PARCEL FOUND</p>
+            <h2>{{ found_package["recipient"] }}</h2>
+          </div>
+          <span class="status-badge {% if found_package['is_overdue'] %}overdue{% else %}stored{% endif %}">
+            {% if found_package["is_overdue"] %}Overdue{% else %}Stored{% endif %}
+          </span>
+        </div>
+        <dl class="pickup-details">
+          <div>
+            <dt>Courier</dt>
+            <dd>{{ found_package["courier"] }}</dd>
+          </div>
+          <div>
+            <dt>Shelf</dt>
+            <dd>{{ found_package["shelf_slot"] }}</dd>
+          </div>
+          <div>
+            <dt>Waiting</dt>
+            <dd>{{ found_package["waiting_days"] }} days</dd>
+          </div>
+          <div>
+            <dt>Storage fee</dt>
+            <dd>${{ "%.2f"|format(found_package["fee_due"]) }}</dd>
+          </div>
+        </dl>
+        <div class="fee-note">
+          The first three days are free. Each additional day costs $1.00.
+        </div>
+        <form method="post" action="{{ url_for('pickup_confirm') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="pickup_code" value="{{ found_package['pickup_code'] }}">
+          <button class="button confirm" type="submit">
+            Confirm collection and charge ${{ "%.2f"|format(found_package["fee_due"]) }}
+          </button>
+        </form>
+      {% else %}
+        <div class="empty-pickup">
+          <span class="empty-icon">→</span>
+          <h2>Waiting for a pickup code</h2>
+          <p>The parcel details and fee will appear here before collection.</p>
+        </div>
+      {% endif %}
+    </article>
+  </section>
+{% endblock %}

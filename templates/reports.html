@@ -1,0 +1,129 @@
+{% extends "app_base.html" %}
+
+{% block title %}Operations Reports · Campus Parcel Station{% endblock %}
+{% block page_name %}Operations reports{% endblock %}
+
+{% block app_content %}
+  <section class="report-intro">
+    <div>
+      <p class="eyebrow">STATION INTELLIGENCE</p>
+      <h1>Daily operations at a glance.</h1>
+      <p>Live shelf state, seven-day activity, courier mix, and collected fees.</p>
+    </div>
+    <span class="report-date">{{ report["generated_at"].strftime("%d %b %Y · %H:%M") }}</span>
+  </section>
+
+  <section class="metric-grid report-metrics">
+    <article class="metric-card">
+      <span class="metric-label">Checked in today</span>
+      <strong>{{ report["today_check_ins"] }}</strong>
+      <small>New parcels</small>
+    </article>
+    <article class="metric-card">
+      <span class="metric-label">Collected today</span>
+      <strong>{{ report["today_pickups"] }}</strong>
+      <small>Completed pickups</small>
+    </article>
+    <article class="metric-card warning">
+      <span class="metric-label">Overdue rate</span>
+      <strong>{{ report["overdue_rate"] }}%</strong>
+      <small>
+        {{ report["overdue_count"] }}
+        overdue parcel{% if report["overdue_count"] != 1 %}s{% endif %}
+      </small>
+    </article>
+    <article class="metric-card accent">
+      <span class="metric-label">Fees today</span>
+      <strong>${{ "%.2f"|format(report["fees_today"]) }}</strong>
+      <small>${{ "%.2f"|format(report["fees_total"]) }} all time</small>
+    </article>
+  </section>
+
+  <section class="report-grid">
+    <article class="panel shelf-panel">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">PHYSICAL SHELF</p>
+          <h2>Live occupancy</h2>
+        </div>
+        <strong class="occupancy-number">{{ report["occupancy_rate"] }}%</strong>
+      </div>
+      <div class="shelf-grid" aria-label="Shelf occupancy map">
+        {% for row in report["shelf_rows"] %}
+          <span class="shelf-row-label">{{ row["row"] }}</span>
+          {% for cell in row["cells"] %}
+            <div class="shelf-cell {{ 'occupied' if cell['occupied'] else 'free' }}{% if cell['occupied'] and cell['package']['is_overdue'] %} overdue{% endif %}">
+              <span>{{ cell["slot"] }}</span>
+              {% if cell["occupied"] %}
+                <strong>{{ cell["package"]["pickup_code"] }}</strong>
+                <small>{{ cell["package"]["recipient"] }}</small>
+              {% else %}
+                <small>Free</small>
+              {% endif %}
+            </div>
+          {% endfor %}
+        {% endfor %}
+      </div>
+      <div class="shelf-legend">
+        <span><i class="free"></i>Free</span>
+        <span><i class="occupied"></i>Occupied</span>
+        <span><i class="overdue"></i>Overdue</span>
+      </div>
+    </article>
+
+    <article class="panel chart-panel">
+      <p class="eyebrow">SEVEN DAYS</p>
+      <h2>Parcel activity</h2>
+      <div class="bar-chart" aria-label="Seven-day parcel activity chart">
+        {% for day in report["daily_activity"] %}
+          <div class="bar-column">
+            <span class="bar-value">{{ day["total"] }}</span>
+            <div class="bar-track">
+              <div class="bar-fill" style="height: {{ day['height'] }}%"></div>
+            </div>
+            <small>{{ day["label"] }}</small>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="chart-caption">
+        Check-ins plus collections per day
+      </div>
+    </article>
+  </section>
+
+  <section class="report-bottom-grid">
+    <article class="panel">
+      <p class="eyebrow">COURIER MIX</p>
+      <h2>Active parcels</h2>
+      {% if report["courier_counts"] %}
+        <ul class="courier-list">
+          {% for courier, count in report["courier_counts"] %}
+            <li>
+              <span>{{ courier }}</span>
+              <div><i style="width: {{ (count / report['active_count'] * 100)|round }}%"></i></div>
+              <strong>{{ count }}</strong>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="empty-state">No active parcels.</div>
+      {% endif %}
+    </article>
+
+    <article class="panel">
+      <p class="eyebrow">LATEST LOG</p>
+      <h2>Recent operations</h2>
+      <ul class="compact-log">
+        {% for log in report["recent_logs"][:5] %}
+          <li>
+            <span class="activity-dot {{ log['action'] }}"></span>
+            <div>
+              <strong>{{ log["message"] }}</strong>
+              <small>{{ log["created_at"] }}</small>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    </article>
+  </section>
+{% endblock %}
